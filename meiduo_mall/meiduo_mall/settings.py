@@ -37,10 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'apps.users'
+    'apps.users',
+    # CORS
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
+    # CORS 跨域 中间件，放置在最上方
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -198,3 +202,13 @@ LOGGING = {
 
 # 指定本项目用户模型类
 AUTH_USER_MODEL = 'users.User'
+
+################################# CORS跨域配置 ###########################################
+# 跨域白名单设置   CORS_ORIGIN_WHITELIST -- 老版本别名，可用，最好用下列最新名称
+CORS_ALLOWED_ORIGINS = [
+    'http://127.0.0.1:8000',
+    'http://127.0.0.1:8080',
+    'http://www.meiduo.site:8000',
+    'http://www.meiduo.site:8080',
+]
+CORS_ALLOW_CREDENTIALS = True  # 允许携带cookie
