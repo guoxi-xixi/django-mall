@@ -35,6 +35,7 @@ from utils.converters import *
 from django.urls import register_converter
 
 register_converter(UsernameConverter, 'username')
+register_converter(MobileConverter, 'mobile')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
