@@ -109,9 +109,17 @@ class RegisterView(View):
         if not re.match('[a-zA-Z_-]{5,20}', username):
             return JsonResponse({'code': 400, 'errmsg': '用户名不满足规则'})
         #     3.3 密码满足规则
+        if not re.match(r'^[0-9A-Za-z]{8,20}$', password):
+            return JsonResponse({'code': 400, 'errmsg': 'password格式有误!'})
         #     3.4 确认密码和密码要一致
+        if password != password2:
+            return JsonResponse({'code': 400, 'errmsg': '两次输入密码不一致'})
         #     3.5 手机号满足规则，手机号也不能重复
+        if not re.match(r'^1[3-9]\d{9}$', mobile):
+            return JsonResponse({'code': 400, 'errmsg': '手机号不满足规则'})
         #     3.6 需要同意协议
+        if allow is not True:
+            return JsonResponse({'code': 400, 'errmsg': '没有勾选校验规则'})
         # 4. 数据入库
         # 方案一
         # user = User(username=username, password=password, mobile=mobile)
