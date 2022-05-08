@@ -113,13 +113,37 @@ class SmsCodeView(View):
         # if redis_image_code != img_code:    # redis_image_code数据类型是byte，img_code是str
         if redis_image_code.decode().lower() != img_code.lower():    # 都把数据类型转为str，小写
             return JsonResponse({'code': 400, 'errmsg': '图片验证码错误'})
+        # 获取短信发送flag
+        sms_send_flag = redis_cli.get('sms_send_flag_%s'%mobile)
+        if sms_send_flag is not None:
+            return JsonResponse({'code': 400, 'errmsg': '请不要频繁发送短信'})
         # 4.生成短线验证码
         from random import randint
         sms_code = '%06d'%randint(0,999999)
+        """
+        频繁调用redis链接，性能较差
+        
         # 5.保存短信验证码
         redis_cli.setex(mobile, 180, sms_code)
         # 6.发送短信验证码
         from libs.yuntongxun.sms import CCP
         CCP().send_template_sms(mobile, [sms_code, 3], 1)
+        # 保存短信发送flag
+        redis_cli.setex('sms_send_flag_%s'%mobile, 60, 1)
+        """
+        # 使用 pipeline 降低 redis 链接请求，降低tcp链接次数
+        # 创建redis管道
+        pipeline = redis_cli.pipeline()
+        # 5.保存短信验证码 -- redis请求添加到请求队列
+        pipeline.setex(mobile, 180, sms_code)
+        # 保存短信发送flag -- redis请求添加到请求队列
+        pipeline.setex('sms_send_flag_%s' % mobile, 60, 1)
+        # 执行pipeline 请求
+        pipeline.execute()
+
+        # 6.发送短信验证码
+        from libs.yuntongxun.sms import CCP
+        CCP().send_template_sms(mobile, [sms_code, 3], 1)
+
         # 7.返回响应
         return JsonResponse({'code': 0, 'errmsg': 'ok'})
