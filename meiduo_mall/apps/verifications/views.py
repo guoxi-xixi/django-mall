@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 
 # Create your views here.
@@ -43,3 +43,83 @@ class ImageCodeView(View):
         # content_type (MIME类型)
         # 图片：image/jepg, image/png, image/gig
         return HttpResponse(image,content_type='image/jpeg')
+
+
+"""
+1.注册
+我们提供免费开发测试，【免费开发测试前，请先 注册 成为平台用户】。
+
+2.绑定测试号
+免费开发测试需要在"控制台—管理—号码管理—测试号码"绑定 测试号码 。
+
+3.开发测试
+开发测试过程请参考 短信业务接口 及 Demo示例 / sdk参考（新版）示例。Java环境安装请参考"新版sdk"。
+
+4.免费开发测试注意事项
+    4.1.免费开发测试需要使用到"控制台首页"，开发者主账户相关信息，如主账号、应用ID等。
+    
+    4.2.免费开发测试使用的模板ID为1，具体内容：【云通讯】您的验证码是{1}，请于{2}分钟内正确输入。其中{1}和{2}为短信模板参数。
+    
+    4.3.测试成功后，即可申请短信模板并 正式使用 。
+"""
+
+"""
+前端：
+    当用户输入完手机号，图片验证码之后，前端发送一个axios请求
+    sms_codes/18310820644/?image_code=knse&image_code_id=b7ef98bb-161b-437a-9af7-f434bb050643
+    
+后端
+    请求：     接收请求，获取请求参数(路由包含手机号，用户的图片验证码和UUID)
+    业务逻辑：   验证参数，验证图片验证码，生成短信验证码，保存短线验证码，发送短信验证码
+    响应：     返回响应    {'code': 0, '': 'ok'}
+    
+    路由      GET sms_codes/18310820644/?image_code=knse&image_code_id=b7ef98bb-161b-437a-9af7-f434bb050643
+    
+    步骤：
+        1.获取请求参数
+        2.验证参数
+        3.验证图片验证码
+        4.生成短线验证码
+        5.保存短信验证码
+        6.发送短信验证码
+        7.返回响应
+        
+需求 --》 思路 --》 步骤 --》 代码
+
+debug 模式 就是调试模式
+debug + 断点配合使用 这个我们看到程序执行的过程
+
+添加断点 在函数体的第一行添加！！！！！
+"""
+
+class SmsCodeView(View):
+
+    def get(self, request, mobile):
+        # 1.获取请求参数
+        img_code = request.GET.get('image_code')    # srt 'EBOC'
+        uuid = request.GET.get('image_code_id')
+        # 2.验证参数
+        if not all([mobile, img_code, uuid]):
+            return JsonResponse({'code': 400, 'errmsg': '参数不全'})
+        # 3.验证图片验证码
+        # 3.1 连接redis
+        from django_redis import get_redis_connection
+        redis_cli = get_redis_connection('code')
+        # 3.2 获取redis数据
+        redis_image_code = redis_cli.get(uuid)  # b'EBOC'
+        if redis_image_code is None:
+            return JsonResponse({'code': 400, 'errmsg': '图片验证码错误'})
+        # 3.3 对比
+        # if redis_image_code != img_code:    # redis_image_code数据类型是byte，img_code是str
+        if redis_image_code.decode().lower() != img_code.lower():    # 都把数据类型转为str，小写
+            return JsonResponse({'code': 400, 'errmsg': '图片验证码错误'})
+        # 4.生成短线验证码
+        from random import randint
+        sms_code = '%06d'%randint(0,999999)
+        # 5.保存短信验证码
+        redis_cli.setex(mobile, 180, sms_code)
+        # 6.发送短信验证码
+        from libs.yuntongxun.sms import CCP
+        CCP().send_template_sms(mobile, [sms_code, 3], 1)
+        # 7.返回响应
+        return JsonResponse({'code': 0, 'errmsg': 'ok'})
