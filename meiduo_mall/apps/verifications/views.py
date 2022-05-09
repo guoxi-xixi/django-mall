@@ -131,6 +131,7 @@ class SmsCodeView(View):
         # 保存短信发送flag
         redis_cli.setex('sms_send_flag_%s'%mobile, 60, 1)
         """
+
         # 使用 pipeline 降低 redis 链接请求，降低tcp链接次数
         # 创建redis管道
         pipeline = redis_cli.pipeline()
@@ -142,8 +143,17 @@ class SmsCodeView(View):
         pipeline.execute()
 
         # 6.发送短信验证码
+        """
+        
+        # 同步执行，强制等待 -- 不推荐
         from libs.yuntongxun.sms import CCP
         CCP().send_template_sms(mobile, [sms_code, 3], 1)
+        
+        """
+        # 使用 celery 执行异步任务
+        from celery_tasks.sms.tasks import celery_send_sms_code
+        # delay参数 等同与 任务(函数) 参数
+        celery_send_sms_code.delay(mobile, sms_code, 3, 1)
 
         # 7.返回响应
         return JsonResponse({'code': 0, 'errmsg': 'ok'})

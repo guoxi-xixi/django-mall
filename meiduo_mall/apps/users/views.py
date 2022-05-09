@@ -1,5 +1,6 @@
 import json
 
+from django.contrib.auth import logout
 from django.shortcuts import render
 
 # Create your views here.
@@ -154,12 +155,114 @@ class RegisterView(View):
         # 5. 返回响应
         return JsonResponse({'code': 0, 'errmsg': 'ok'})
 
-    """
-    如果需求是注册成功后即表示用户认证通过，那么此时可以在注册成功后实现状态保持 (注册成功即已经登录)  v
-    如果需求是注册成功后不表示用户认证通过，那么此时不用在注册成功后实现状态保持 (注册成功，单独登录)
+"""
+如果需求是注册成功后即表示用户认证通过，那么此时可以在注册成功后实现状态保持 (注册成功即已经登录)  v
+如果需求是注册成功后不表示用户认证通过，那么此时不用在注册成功后实现状态保持 (注册成功，单独登录)
 
-    实现状态保持主要有两种方式：
-        在客户端存储信息使用Cookie
-        在服务器端存储信息使用Session
+实现状态保持主要有两种方式：
+    在客户端存储信息使用Cookie
+    在服务器端存储信息使用Session
 
-    """
+"""
+
+"""
+登录
+    
+前端：
+        当用户把用户名和密码输入完成之后，会点击登录按钮。这个时候前端应该发送一个axios请求
+        
+后端：
+    请求    ：  接收数据，验证数据
+    业务逻辑：   验证用户名和密码是否正确，session
+    响应    ： 返回JSON数据 0 成功。 400 失败
+
+    POST        /login/
+步骤：
+    1. 接收数据
+    2. 验证数据
+    3. 验证用户名和密码是否正确
+    4. session
+    5. 判断是否记住登录
+    6. 返回响应
+"""
+
+class LoginView(View):
+
+    def post(self, request):
+        # 1.接收数据
+        data = json.loads(request.body.decode())
+        username = data.get('username')
+        password = data.get('password')
+        remembered = data.get('remembered')
+        # 2. 验证数据
+        if not all([username, password]):
+            return JsonResponse({'code': 400, 'errmgs': '参数不全'})
+
+        # 判断是通过 username 还是 mobile 登录
+        # USERNAME_FIELD 我们可以根据 修改 User. USERNAME_FIELD 字段，来影响authenticate 的查询
+        # authenticate 就是根据 USERNAME_FIELD 来查询
+        if re.match(r'^1[3-9]\d{9}$', username):
+            User.USERNAME_FIELD = 'mobile'
+        else:
+            User.USERNAME_FIELD = 'username'
+        # 验证 username 和 password 是否合法
+            if not re.match(r'^[a-zA-Z_-]{5,20}$', username):
+                return JsonResponse({'code': 400, 'errmsg': '用户名不满足校验规则'})
+        if not re.match(r'^[0-9A-Za-z]{8,20}$', password):
+            return JsonResponse({'code': 400, 'errmsg': '用户名或者密码格式有误!'})
+        # 3. 验证用户名和密码是否正确
+        # 通过模型根据用户名进行查询
+        # User.objects.get(username=username)   # 不推荐
+
+        # 方式二：
+        from django.contrib.auth import authenticate
+        # authenticate 传递用户名和密码
+        # 如果用户名和密码正确，则返回 User信息
+        # 如果用户名和密码不正确，则返回 None
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            pass
+            # return JsonResponse({'code': 0, 'errmsg': 'ok', 'userInfo': user})
+        else:
+            return JsonResponse({'code': 400, 'errmsg': '用户名或密码错误'})
+
+        # 4. session
+        from django.contrib.auth import login
+        login(request, user)
+        # 5. 判断是否记住登录
+        if remembered:
+            # 记住登录-- 默认2周 或者 any ，具体时间 pd定
+            request.session.set_expiry(604800)    # 3600*24*7 = 604800
+        else:
+            # 不记住登录 -- 浏览器关闭 session关闭
+            request.session.set_expiry(0)
+        # 6. 返回响应
+        # return JsonResponse({'code': 0, 'errmsg': 'ok'})
+        response = JsonResponse({'code': 0, 'errmsg': 'ok'})
+        # 设置 cookie 首页展示用户信息
+        response.set_cookie('username', username)
+        return response
+
+
+"""
+前端：
+    当用户点击退出按钮的时候，前端发送一个axios delete请求
+
+后端：
+    请求
+    业务逻辑        退出
+    响应      返回JSON数据
+"""
+
+class LogoutView(View):
+
+    # def get(self, request):
+    def delete(self, request):
+        # 1.删除 session信息
+        logout(request)
+
+        response = JsonResponse({'code': 0, 'errmsg': 'ok'})
+        # 2.删除 cookie信息，前端是根据cookie信息来判断用户是否登录的
+        response.delete_cookie('username')
+
+        return response
