@@ -134,8 +134,25 @@ class OauthQQView(View):
         # except Exception as e:
         except OAuthQQUser.DoesNotExist:
             # 5. 如果没有绑定过，则需要绑定
+            """
+            封装的思想
 
-            response = JsonResponse({'code': 400, 'errmsg': '未绑定', 'access_token': token})
+                所谓的封装的思想其实就是把 一些实现了特定功能的代码 封装成一个函数（方法）
+
+            封装的目的
+
+                解耦   --- 当需求发生改变的时候，对代码的修改影响比较小
+
+            封装的步骤
+                1.把要封装的代码 定义到一个函数（方法）中
+                2.优化封装的代码
+                3.验证封装的代码
+            """
+            # 对返回给前端对 openid 加密
+            from apps.oauth.utils import generic_openid
+            access_token = generic_openid(openid, 3600)
+
+            response = JsonResponse({'code': 400, 'errmsg': '未绑定', 'access_token': access_token})
             return response
         else:
             # 6. 如果绑定过，则直接登录
@@ -155,7 +172,7 @@ class OauthQQView(View):
         mobile = data.get('mobile')
         password = data.get('password')
         sms_code = data.get('sms_code')
-        openid = data.get('access_token')
+        access_token = data.get('access_token')
         # 验证接收的数据
         if not all([mobile, password, sms_code, openid]):
             return JsonResponse({'code': 400, 'errmsg': '参数不全'})
@@ -170,6 +187,11 @@ class OauthQQView(View):
             return JsonResponse({'code': 400, 'errmsg': '验证码已过期'})
         if sms_code.lower() != sms_code_server.decode().lower():     # redis_image_code数据类型是byte，img_code是str
             return JsonResponse({'code': 400, 'errmsg': '输入验证码有误'})
+        # 添加对 access-token 解密
+        from apps.oauth.utils import check_access_token
+        openid = check_access_token(access_token, 3600)
+        if openid is None:
+            return JsonResponse({'code': 400, 'errmsg': '参数不全'})
 
         # 3. 根据手机号进行用户信息的查询
         try:
@@ -177,7 +199,7 @@ class OauthQQView(View):
         except User.DoesNotExist:
             # 手机号不存在
             # 5. 查询到用户手机号没有注册。我们就创建一个user信息。然后再绑定
-            user = User.objects.create(username=mobile, mobile=mobile,password=password)
+            user = User.objects.create_user(username=mobile, mobile=mobile,password=password)
         else:
             # 手机号存在
             # 4. 查询到用户手机号已经注册了。判断密码是否正确。密码正确就可以直接保存（绑定） 用户和openid信息
@@ -216,3 +238,34 @@ class OauthQQView(View):
             6. 完成状态保持
             7. 返回响应
 """
+
+##########itsdangerous的基本使用##############################################
+# itsdangerous就是为了数据加密
+
+# 加密
+"""
+1.导入 itsdangerous类
+2.创建实例对象
+3.加密数据
+"""
+# 1.导入 itsdangerous类
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+# TimedSerializer 这个类 不仅可以对数据进行加密，还是可以对数据设置一个时效
+# 2.创建实例对象
+# sercret_key,     密钥
+# max_age          数据过期时间（s）
+s = Serializer(secret_key=settings.SECRET_KEY, expires_in=3600)
+
+# 3.加密数据
+token = s.dumps({'openid':'1234567890'})
+# b'eyJhbGciOiJIUzUxMiIsImlhdCI6MTY1MjM3NTM0MCwiZXhwIjoxNjUyMzc4OTQwfQ.eyJvcGVuaWQiOiIxMjM0NTY3ODkwIn0.vA0QAWkxUTPtgPGO8CRQJ1mXeGETgW7sNEICpgkf5iawZglPtuybknMrknzRXQ74I7ensjEsG7wjHZ-cTqqU5Q'
+
+#############################
+# 解密数据
+# 1. 导入 itsdangerous 类
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+# 2. 创建类对实例对象
+s = Serializer(secret_key=settings.SECRET_KEY, expires_in=3600)
+# 3. 解密数据
+s.loads(token)
+# {'openid': '1234567890'}
