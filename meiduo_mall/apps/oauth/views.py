@@ -174,7 +174,7 @@ class OauthQQView(View):
         sms_code = data.get('sms_code')
         access_token = data.get('access_token')
         # 验证接收的数据
-        if not all([mobile, password, sms_code, openid]):
+        if not all([mobile, password, sms_code, access_token]):
             return JsonResponse({'code': 400, 'errmsg': '参数不全'})
         if not re.match(r'^1[3-9]\d{9}$', mobile):
             return JsonResponse({'code': 400, 'errmsg': '请输入正确的手机号'})

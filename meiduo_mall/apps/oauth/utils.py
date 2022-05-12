@@ -20,3 +20,5 @@ def check_access_token(token, expire_time):
         result = s.loads(token)
     except Exception as e:
         logger.info('check_access_token error%s' %e)
+    else:
+        return result.get('openid')
