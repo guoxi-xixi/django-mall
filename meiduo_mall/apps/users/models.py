@@ -18,6 +18,7 @@ class User(AbstractUser):
     """ User模型 - User表 """
     # 新值django自带user模型没有mobile字段
     mobile = models.CharField(max_length=11,unique=True)
+    email_active = models.BooleanField(default=False, verbose_name='邮箱验证状态')
 
     class Meta:
         # 表名

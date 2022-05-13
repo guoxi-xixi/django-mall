@@ -46,6 +46,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     # CORS 跨域 中间件，放置在最上方
     'corsheaders.middleware.CorsMiddleware',
+
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

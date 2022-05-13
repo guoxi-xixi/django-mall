@@ -278,5 +278,14 @@ from utils.views import LoginRequiredJSONMixin
 class CenterView(LoginRequiredJSONMixin, View):
 
     def get(self, request):
-
-        return JsonResponse({'code': 0, 'errmsg': 'ok'})
+        # request.user 就是已经登录的用户信息
+        # request.user 就是来源于中间件 'django.contrib.auth.middleware.AuthenticationMiddleware',
+        # 系统会进行判断 如果是登录用户，则获取登录用户的 模型实例数据
+        # 若不是登录用户，则 request.user = AnonymousUser() 匿名用户
+        info_data = {
+            'username': request.user.username,
+            'email': request.user.email,
+            'mobile': request.user.mobile,
+            'email_active': request.user.email_active
+        }
+        return JsonResponse({'code': 0, 'errmsg': 'ok', 'info_data': info_data})
