@@ -9,4 +9,6 @@ urlpatterns = {
     path('login/', LoginView.as_view()),
     path('logout/', LogoutView.as_view()),
     path('info/', CenterView.as_view()),
+    path('emails/', EmailView.as_view()),
+    path('emails/verification/', EmailVerifyView.as_view()),
 }
