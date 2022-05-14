@@ -25,3 +25,51 @@ class Area(models.Model):
 
     def __str__(self):
         return self.name
+
+
+"""
+省市区
+
+
+id          name            parent_id
+
+10000       河北省             NULL
+
+10100       保定市             10000
+10200       石家庄市            10000
+10300       唐山市             10000
+
+
+10101       雄县              10100
+10102       安新县             10100
+
+
+
+查询省份信息
+ select * from tb_areas where parent_id is NULL;
+
+ Area.objects.filter(parent=None)
+ Area.objects.filter(parent__isnull=True)
+ Area.objects.filter(parent_id__isnull=True)
+
+
+查询市的信息
+select * from tb_areas where parent_id=140000;
+
+    Area.objects.filter(parent_id=140000)
+    Area.objects.filter(parent=140000)
+
+    >>> province=Area.objects.get(id=140000)  #省
+    >>> province.subs.all()                   #市
+
+
+查询区县的信息
+select * from tb_areas where parent_id=141100;
+
+    Area.objects.filter(parent_id=141100)
+    Area.objects.filter(parent=141100)
+
+    >>> city=Area.objects.get(id=141100)   #市
+    >>> city.subs.all()                    #区县
+
+"""
