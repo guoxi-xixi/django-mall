@@ -14,4 +14,6 @@ urlpatterns = {
     path('addresses/create/', AddressCreateView.as_view()),
     path('addresses/', AddressView.as_view()),
     path('addresses/<address_id>/', AddressUpdateView.as_view()),
+    path('addresses/<address_id>/default/', DefaultAddressView.as_view()),
+    path('addresses/<address_id>/title/', UpdateTitleAddressView.as_view()),
 }

@@ -595,7 +595,21 @@ class AddressView(LoginRequiredJSONMixin, View):
         # 2.将对象数据转换为字典数据
         address_list = []
         for address in addresses:
-            address_list.append({
+            # address_list.append({
+            #     "id": address.id,
+            #     "title": address.title,
+            #     "receiver": address.receiver,
+            #     "province": address.province.name,
+            #     "city": address.city.name,
+            #     "district": address.district.name,
+            #     "place": address.place,
+            #     "mobile": address.mobile,
+            #     "tel": address.tel,
+            #     "email": address.email
+            # })
+
+            # 排序，并返回默认地址
+            address_dict = ({
                 "id": address.id,
                 "title": address.title,
                 "receiver": address.receiver,
@@ -607,8 +621,16 @@ class AddressView(LoginRequiredJSONMixin, View):
                 "tel": address.tel,
                 "email": address.email
             })
+            default_address = user.default_address
+            if default_address.id == address.id:
+                address_list.insert(0, address_dict)
+            else:
+                address_list.append(address_dict)
+
+        default_address_id = user.default_address_id
+
         # 3.返回响应
-        return JsonResponse({'code': 0, 'errmsg': 'ok', 'addresses': address_list})
+        return JsonResponse({'code': 0, 'errmsg': 'ok', 'addresses': address_list, 'default_address_id': default_address_id})
 
 
 class AddressUpdateView(LoginRequiredJSONMixin, View):
@@ -701,3 +723,41 @@ class AddressUpdateView(LoginRequiredJSONMixin, View):
             return JsonResponse({'code': 400, 'errmsg': '删除异常'})
         # 返回响应结果
         return JsonResponse({'code': 0, 'errmsg': 'ok'})
+
+
+class DefaultAddressView(LoginRequiredJSONMixin, View):
+    """设置默认地址"""
+    def put(self, request, address_id):
+        try:
+            # 查询指定数据
+            user = request.user
+            # 查询默认地址
+            address = Address.objects.get(id=address_id)
+            # 设置地址为默认地址
+            user.default_address = address
+            user.save()
+        except Exception as e:
+            logger.error(e)
+            return JsonResponse({'code': 400, 'errmsg': '设置默认地址失败'})
+        # 返回响应结果
+        return JsonResponse({'code': 0, 'errmsg': '设置默认地址成功'})
+
+
+class UpdateTitleAddressView(LoginRequiredJSONMixin, View):
+    """设置地址标题"""
+    def put(self, request, address_id):
+        # 接收参数：地址标题
+        data = json.loads(request.body.decode())
+        title = data.get('title')
+        try:
+            # 查询指定数据
+            address = Address.objects.get(id=address_id)
+
+            address.title = title
+            address.save()
+        except Exception as e:
+            logger.error(e)
+            return JsonResponse({'code': 400, 'errmsg': '设置标题异常'})
+
+        # 返回响应结果
+        return JsonResponse({'code': 0, 'errmsg': '设置地址标题成功'})
