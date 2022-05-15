@@ -684,3 +684,20 @@ class AddressUpdateView(LoginRequiredJSONMixin, View):
         }
         # 返回响应
         return JsonResponse({'code': 0, 'errmsg': 'ok', 'addresses': address_dict})
+
+    def delete(self, request, address_id):
+        try:
+            # 物理删除
+            # Address.objects.get(id=address_id).delete()
+            # 逻辑删除
+            address = Address.objects.get(id=address_id)
+            # is_deleted 标记为true
+            address.is_deleted = True
+            address.save()
+
+            # Address.objects.get(id=address_id).update(is_deleted=True)
+        except Exception as e:
+            logger.error(e)
+            return JsonResponse({'code': 400, 'errmsg': '删除异常'})
+        # 返回响应结果
+        return JsonResponse({'code': 0, 'errmsg': 'ok'})
