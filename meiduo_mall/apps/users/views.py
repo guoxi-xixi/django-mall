@@ -761,3 +761,40 @@ class UpdateTitleAddressView(LoginRequiredJSONMixin, View):
 
         # 返回响应结果
         return JsonResponse({'code': 0, 'errmsg': '设置地址标题成功'})
+
+
+class ChangePasswordView(LoginRequiredJSONMixin, View):
+    """修改密码"""
+    def put(self, request):
+        # 接收参数
+        data = json.loads(request.body.decode())
+        old_password = data.get('old_password')
+        new_password = data.get('new_password')
+        new_password2 = data.get('new_password2')
+
+        user = request.user
+        # 验证参数
+        if not all([old_password, new_password, new_password2]):
+            return JsonResponse({'code': 400, 'errmsg': '参数缺失'})
+        # 验证密码
+        # user.check_password 密码加密后校验密码是否和当前密码匹配
+        if not user.check_password(old_password):
+            return JsonResponse({'code': 400, 'errmsg': '用户密码有误!'})
+        # if not re.match(r'^[0-9A-Za-z]{8,20}$', old_password):    # 校验原始密码不需要校验格式
+        #     return JsonResponse({'code': 400, 'errmsg': '用户名或者密码格式有误!'})
+        if not re.match(r'^[0-9A-Za-z]{8,20}$', new_password):
+            return JsonResponse({'code': 400, 'errmsg': '用户名或者密码格式有误!'})
+        # if not re.match(r'^[0-9A-Za-z]{8,20}$', new_password2):   # new_password 和 new_password2 格式只需校验一次，校验是否相等
+        #     return JsonResponse({'code': 400, 'errmsg': '用户名或者密码格式有误!'})
+        if new_password != new_password2:
+            return JsonResponse({'code': 400, 'errmsg': '两次密码不一致!'})
+        try:
+            # user.set_password 设置加密密码
+            user.set_password(new_password)
+            user.save()
+        except Exception as e:
+            logger.error(e)
+            return JsonResponse({'code': 400, 'errmsg': '修改密码失败'})
+
+        # 返回响应
+        return JsonResponse({'code': 0, 'errmsg': '修改成功！'})

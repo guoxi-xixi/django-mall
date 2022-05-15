@@ -16,4 +16,5 @@ urlpatterns = {
     path('addresses/<address_id>/', AddressUpdateView.as_view()),
     path('addresses/<address_id>/default/', DefaultAddressView.as_view()),
     path('addresses/<address_id>/title/', UpdateTitleAddressView.as_view()),
+    path('password/', ChangePasswordView.as_view()),
 }
