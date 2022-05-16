@@ -31,3 +31,17 @@ stu_id      teacher_id
 
 商品day01    模型的分析 --》  Fdfs(用于保存图片，视频等文件) --》 为了部署Fdfs学习Docker
 """
+
+######################### 上传图片的代码 ################################
+from fdfs_client.client import Fdfs_client
+
+# 1.创建客户端
+# 修改加载配置文件的路径
+client = Fdfs_client(conf_path='utils/fastfdfs/client.conf')
+
+# 2.上传图片
+# 图片的绝对路径
+client.upload_by_file('/Users/guoxi/Desktop/tracker和storage容器运行的说明.png')
+
+# 3.获取file_id .upload_by_filename 上传成功会返回字典数据
+# 字典数据中 有file_id
