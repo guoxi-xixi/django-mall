@@ -37,11 +37,13 @@ from fdfs_client.client import Fdfs_client
 
 # 1.创建客户端
 # 修改加载配置文件的路径
-client = Fdfs_client(conf_path='utils/fastfdfs/client.conf')
+client = Fdfs_client(conf_path='utils/fastdfs/client.conf')
 
 # 2.上传图片
 # 图片的绝对路径
-client.upload_by_file('/Users/guoxi/Desktop/tracker和storage容器运行的说明.png')
+client.upload_by_filename('/Users/guoxi/Desktop/tracker和storage容器运行的说明.png')
+
+# {'Group name': 'group1', 'Remote file_id': 'group1/M00/00/00/wKgAb2KDuwmAWlW_AAJPDqdyBHU830.png', 'Status': 'Upload successed.', 'Local file name': 'Desktop/tracker和storage容器运行的说明.png', 'Uploaded size': '147.00KB', 'Storage IP': 'host'}
 
 # 3.获取file_id .upload_by_filename 上传成功会返回字典数据
 # 字典数据中 有file_id
