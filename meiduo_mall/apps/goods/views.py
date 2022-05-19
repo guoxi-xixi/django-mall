@@ -33,17 +33,166 @@ stu_id      teacher_id
 """
 
 ######################### 上传图片的代码 ################################
-from fdfs_client.client import Fdfs_client
+# from fdfs_client.client import Fdfs_client
 
 # 1.创建客户端
 # 修改加载配置文件的路径
-client = Fdfs_client(conf_path='utils/fastdfs/client.conf')
+# client = Fdfs_client(conf_path='utils/fastdfs/client.conf')
 
 # 2.上传图片
 # 图片的绝对路径
-client.upload_by_filename('/Users/guoxi/Desktop/tracker和storage容器运行的说明.png')
+# client.upload_by_filename('/Users/guoxi/Desktop/tracker和storage容器运行的说明.png')
 
 # {'Group name': 'group1', 'Remote file_id': 'group1/M00/00/00/wKgAb2KDuwmAWlW_AAJPDqdyBHU830.png', 'Status': 'Upload successed.', 'Local file name': 'Desktop/tracker和storage容器运行的说明.png', 'Uploaded size': '147.00KB', 'Storage IP': 'host'}
 
 # 3.获取file_id .upload_by_filename 上传成功会返回字典数据
 # 字典数据中 有file_id
+
+############################################
+import logging
+
+from django.shortcuts import render
+from django.views import View
+from utils.goods import get_categories
+from apps.contents.models import ContentCategory
+
+logger = logging.getLogger('django')
+
+class IndexView(View):
+    """首页广告"""
+    def get(self, request):
+        """
+        首页的数据分为2部分
+        1部分是 商品分类数据
+        2部分是 广告数据
+        """
+        # 1.商品分类数据
+        categories = get_categories()
+        # 2.广告数据
+        contents = {}
+        content_categories = ContentCategory.objects.all()
+        for cat in content_categories:
+            contents[cat.key] = cat.content_set.filter(status=True).order_by('sequence')
+
+        # 后续讲解页面静态化
+        # 数据传递给模版
+        context = {
+            'categories': categories,
+            'contents': contents
+        }
+
+        # 模版使用较少，暂时学习过渡使用
+        return render(request, 'index.html', context)
+
+
+"""
+需求：
+        根据点击的分类，来获取分类数据（有排序，有分页）
+前端：
+        前端会发送一个axios请求， 分类id 在路由中， 
+        分页的页码（第几页数据），每页多少条数据，排序也会传递过来
+后端：
+    请求          接收参数
+    业务逻辑       根据需求查询数据，将对象数据转换为字典数据
+    响应          JSON
+
+    路由      GET     /list/category_id/skus/
+    步骤
+        1.接收参数
+        2.获取分类id
+        3.根据分类id进行分类数据的查询验证
+        4.获取面包屑数据
+        5.查询分类对应的sku数据，然后排序，然后分页
+        6.返回响应
+"""
+from apps.goods.models import GoodsCategory,SKU
+from django.http import JsonResponse
+from utils.goods import get_breadcrumb
+
+class ListView(View):
+
+    def get(self, request, category_id):
+        # 1.接收参数
+        # 排序字段
+        ordering = request.GET.get('ordering')
+        # 页码
+        page = request.GET.get('page')
+        # 每页返回的数据
+        page_size = request.GET.get('page_size')
+
+        # 2.获取分类id  - category_id，已传
+
+        # 3.根据分类id进行分类数据的查询验证
+        try:
+            # 获取三级菜单分类信息
+            category = GoodsCategory.objects.get(id=category_id)
+        except Exception as e:
+            logger.error(e)
+            return JsonResponse({'code': 400, 'errmsg': '获取分类数据失败'})
+
+        # 4.获取面包屑数据
+        breadcrumb = get_breadcrumb(category)
+
+        # 5.查询分类对应的sku数据，然后排序，然后分页, 根据 分类信息和是否上架查询sku信息
+        skus = SKU.objects.filter(category=category,is_launched=True).order_by(ordering)
+        # 分页
+        from django.core.paginator import Paginator
+        """
+        Paginator必传参数 object_list, per_page
+        object_list: 列表数据
+        per_page:    每页数据大小
+        """
+        paginator = Paginator(object_list=skus, per_page=page_size)
+        # 获取指定页码数据
+        page_skus = paginator.page(page)
+
+        # 定义列表:
+        sku_list = []
+        # 将对象转换为字典数据
+        for sku in page_skus.object_list:
+            sku_list.append({
+                'id': sku.id,
+                'name': sku.name,
+                'price': sku.price,
+                'default_image_url': sku.default_image.url
+            })
+
+        # 获取总页码
+        total_num = paginator.num_pages
+
+        # 6.返回响应
+        return JsonResponse({
+            'code': 0,
+            'msg': 'ok',
+            'breadcrumb': breadcrumb,
+            'list': sku_list,
+            'count': total_num
+        })
+
+
+class HotGoodsView(View):
+    """商品热销排行"""
+    def get(self, request, category_id):
+        # 1.接收数据
+        # 2.获取分类id category_id
+        # 3.根据分类id进行SKU数据的查询验证
+        try:
+            skus = SKU.objects.filter(category_id=category_id, is_launched=True).order_by('sales')[:2]
+        except Exception as e:
+            logger.error(e)
+            return JsonResponse({'code': 400, 'errmsg': '获取热销商品失败'})
+        # 4.组装数据
+        sku_list = []
+        for sku in skus:
+            sku_list.append({
+                'id': sku.id,
+                'name': sku.name,
+                'price': sku.price,
+                'default_image_url': sku.default_image.url
+            })
+        # 5.返回响应
+        return JsonResponse({
+            'code': 0,
+            'msg': 'ok',
+            'hot_skus': sku_list
+        })
