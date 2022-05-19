@@ -196,3 +196,75 @@ class HotGoodsView(View):
             'msg': 'ok',
             'hot_skus': sku_list
         })
+
+
+########################################################################
+"""
+搜索 
+
+1. 我们不使用like
+
+2. 我们使用 全文检索
+    全文检索即在指定的任意字段中进行检索查询
+
+3. 全文检索方案需要配合搜索引擎来实现
+
+4. 搜索引擎
+
+    原理：  关键词与词条的对应关系，并记录词条的位置
+
+
+        1  --- 我爱北京天安门                      我爱， 北京，天安门
+
+        2 --- 王红，我爱你，我想你想的睡不着觉        王红，我爱，我爱你，睡不着觉，想你，
+
+        3 ---  我睡不着觉                          我，睡不着觉 
+
+
+        我爱
+
+
+5. Elasticsearch
+    进行分词操作 
+    分词是指将一句话拆解成多个单字或词，这些字或词便是这句话的关键词
+
+    下雨天 留客天 天留我不 留
+
+
+6. 
+    数据         <----------Haystack--------->             elasticsearch 
+
+                        ORM(面向对象操作模型)                 mysql,oracle,sqlite,sql server
+"""
+
+"""
+ 我们/数据         <----------Haystack--------->             elasticsearch 
+
+ 我们是借助于 haystack 来对接 elasticsearch
+ 所以 haystack 可以帮助我们 查询数据
+"""
+from haystack.views import SearchView
+
+class SKUSearchView(SearchView):
+
+    def create_response(self):
+        # 默认返回 HttpResponse，需要继承重写
+
+        # 获取搜索结果
+        context = self.get_context()
+
+        # 添加断点来分析 context 里边有什么数据   -- 对象.列表
+        sku_list = []
+        for sku in context['page'].object_list:
+            sku_list.append({
+                'id': sku.object.id,
+                'name': sku.object.name,
+                'price': sku.object.price,
+                'default_image_url': sku.object.default_image.url,
+                'searchkey': context.get('query'),
+                'page_size': context['page'].paginator.num_pages,
+                'count': context['page'].paginator.count
+            })
+
+        # 返回响应数据
+        return JsonResponse(sku_list, safe=False)

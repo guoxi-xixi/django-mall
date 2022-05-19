@@ -42,8 +42,11 @@ INSTALLED_APPS = [
     'apps.areas',
     'apps.goods',
     'apps.contents',
+
     # CORS
-    'corsheaders'
+    'corsheaders',
+    # 全文检索
+    'haystack',
 ]
 
 MIDDLEWARE = [
@@ -254,3 +257,16 @@ DEFAULT_FILE_STORAGE = 'utils.fastdfs.storage.MyStorage'
 # FastDFS相关参数
 # FDFS_BASE_URL = 'http://192.168.103.158:8888/'
 FDFS_BASE_URL = 'http://image.meiduo.site:8888/'
+
+
+############################ 配置Haystack为搜索引擎后端 ###########################################
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch2_backend.Elasticsearch2SearchEngine',
+        'URL': 'http://127.0.0.1:9200/',
+        'INDEX_NAME': 'meiduo_mall',
+    },
+}
+
+# 当添加、修改、删除数据时，自动生成索引
+# HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
