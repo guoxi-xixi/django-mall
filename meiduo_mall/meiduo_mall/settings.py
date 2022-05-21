@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     'corsheaders',
     # 全文检索
     'haystack',
+    # 定时任务
+    'django_crontab',
 ]
 
 MIDDLEWARE = [
@@ -273,3 +275,23 @@ HAYSTACK_CONNECTIONS = {
 
 # 配置Haystack 分页，每页显示内容数量
 HAYSTACK_SEARCH_RESULTS_PER_PAGE = 5
+
+
+############################ django_crontab 定时任务 ###########################################
+"""
+定时时间基本格式 :
+
+*  *  *  *  *
+
+分 时 日 月 周    命令
+
+M: 分钟（0-59）。每分钟用 * 或者 */1 表示
+H：小时（0-23）。（0表示0点）
+D：天（1-31）。
+m: 月（1-12）。
+d: 一星期内的天（0~6，0为星期天）。
+"""
+CRONJOBS = [
+    # 每1分钟生成一次首页静态文件
+    ('*/1 * * * *', 'apps.contents.crons.generic_meiduo_index', '>> ' + os.path.join(BASE_DIR, 'logs/crontab.log')),
+]
