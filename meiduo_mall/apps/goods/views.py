@@ -301,7 +301,7 @@ class DetailView(View):
         breadcrumb = get_breadcrumb(sku.category)
         # 4.规格信息
         goods_specs = get_goods_specs(sku)
-
+        # 渲染页面
         context = {
             'categories': categories,
             'breadcrumb': breadcrumb,
