@@ -332,8 +332,35 @@ class DetailView(View):
         5. 有的话更新数据
         6. 返回响应
 """
+from datetime import date
+from apps.goods.models import GoodsVisitCount
 
 class CategoryVisitCountView(View):
 
-    def post(self, request):
-        pass
+    def post(self, request, category_id):
+        # 1.接收分类id
+        # 2.验证参数（验证分类id）
+        try:
+            category = GoodsCategory.objects.get(id=category_id)
+        except Exception as e:
+            logger.error(e)
+            return JsonResponse({'code': 400, 'errmsg': '获取分类商品失败'})
+
+        # 3.查询当天 这个分类的记录有没有
+        today = date.today()
+        try:
+            gvc = GoodsVisitCount.objects.get(category=category, date=today)
+        except Exception as e:
+            logger.error(e)
+            # 4. 没有则新建数据
+            GoodsVisitCount.objects.create(
+                category=category,
+                date=today,
+                count=1
+            )
+        else:
+            # 5. 有的话更新数据
+            gvc.count+=1
+            gvc.save()
+        # 6. 返回响应
+        return JsonResponse({'code': 0, 'msg': 'ok'})
