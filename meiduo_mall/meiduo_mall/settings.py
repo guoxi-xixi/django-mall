@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'apps.areas',
     'apps.goods',
     'apps.contents',
+    'apps.carts',
 
     # CORS
     'corsheaders',
@@ -146,30 +147,37 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 ################################# django-redis ###########################################
 CACHES = {
-    "default": {
+    "default": {    # 省市区数据
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379/0",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     },
-    "session": {
+    "session": {    # 用于保存session数据
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379/1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     },
-    "code": {
+    "code": {       # 图形验证码，短信验证码，
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379/2",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     },
-    "history": {
+    "history": {    # 用户浏览记录
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379/3",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+    "carts": {    # 用户购物车记录
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/4",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
