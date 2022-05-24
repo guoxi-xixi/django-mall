@@ -1,5 +1,7 @@
 import json
 import logging
+import base64
+import pickle
 
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -189,7 +191,7 @@ from apps.goods.models import SKU
 from django_redis import get_redis_connection
 
 class CartsView(View):
-    """购物车实现"""
+    """购物车管理"""
 
     """
         前端：
@@ -231,6 +233,7 @@ class CartsView(View):
         """
 
     def post(self, request):
+        """添加购物车"""
         # 1.接收数据
         data = json.loads(request.body.decode())
         sku_id = data.get('sku_id')
@@ -280,18 +283,58 @@ class CartsView(View):
                     }
             """
             # {16： {count: 3, selected: True}}
-            #     5.1 先有cookie字典
-            carts = {
-                sku_id: {'count':count, 'selected': True}
+            #     5.0 先读取cookie数据，实现累加而不是重置
+            carts_cookies = request.COOKIES.get('carts')
+            if carts_cookies:
+                # 加密数据解密 - 解密：base64 加密的数据 decode
+                carts_cookies_base64decode = base64.b64decode(carts_cookies)
+                # b'\x80\x03}q\x00K\x01}q\x01(X\x05\x00\x00\x00countq\x02K\x08X\x08\x00\x00\x00selectedq\x03\x88us.'
+
+                # 加密数据解密 - 解密：base64解密后的数据 bytes 解密为原数据
+                carts_cookies_bytesloads = pickle.loads(carts_cookies_base64decode)
+                # {1: {'count': 8, 'selected': True}}
+                carts = carts_cookies_bytesloads
+            else:
+                carts = {}
+                # #     5.1 先有cookie字典
+                # carts = {
+                #     sku_id: {'count':count, 'selected': True}
+                # }
+
+            #     判断新增的商品是否 在购物车
+            if sku_id in carts:
+                # 购物车中 已经有该商品id
+                # 数量累加
+                ## {16： {count:3,selected:True}}
+                origin_count = carts[sku_id]['count']
+                count+=origin_count
+
+            #     carts[sku_id] = {
+            #         'count': count,
+            #         'selected': True
+            #     }
+            # else:
+            #     # 购物车中 没有该商品id
+            #     carts[sku_id] = {
+            #         'count': count,
+            #         'selected': True
+            #     }
+            # 上述 if-else 重复逻辑优化
+            carts[sku_id] = {
+                'count': count,
+                'selected': True
             }
+
             #     5.2 字典转换为bytes
-            import pickle
+            # import pickle
             carts_bytes = pickle.dumps(carts)
             # b'\x80\x03}q\x00K\x01}q\x01(X\x05\x00\x00\x00countq\x02K\x01X\x08\x00\x00\x00selectedq\x03\x88us.'
+
             #     5.3 bytes类型数据base64编码
-            import base64
+            # import base64
             carts_base64 = base64.b64encode(carts_bytes)
             # b'gAN9cQBLAX1xAShYBQAAAGNvdW50cQJLAVgIAAAAc2VsZWN0ZWRxA4h1cy4='
+
             #     5.4 设置cookie
             response = JsonResponse({'code': 0, 'msg': 'ok'})
             # key, value='', max_age=None
