@@ -615,3 +615,60 @@ class CartsView(View):
             response.set_cookie('carts', new_carts.decode(), max_age=3600*24*7)
             #     5.5 返回响应
             return response
+
+
+class CartsSelectAllView(View):
+    """购物车全选"""
+    def put(self, request):
+        # 获取用户信息
+        user = request.user
+        # 接收请求
+        data = json.loads(request.body.decode())
+        selected = data.get('selected')
+        # 验证参数
+        # 3.根据用户状态
+        if user.is_authenticated:
+            # 4.登录用户操作redis
+            #     4.1 连接redis
+            redis_cli = get_redis_connection('carts')
+            #     4.2 hash 查询出购物车中的sku_id
+            sku_ids = redis_cli.hkeys('carts_%s'%user.id)
+            # [b'2', b'16', b'3']
+            # sku_ids_list = list(sku_ids)  # 获取的key本身就是列表
+            #     4.3 set
+            if selected:
+                # 全选
+                redis_cli.sadd('selected_%s'%user.id, *sku_ids)
+            else:
+                # 取消全选
+                redis_cli.srem('selected_%s'%user.id, *sku_ids)
+
+            #     4.4 返回响应
+            return JsonResponse({'code': 0, 'msg': 'ok'})
+        else:
+            # 5.未登录用户操作cookie
+            #     5.1 读取cookie中的购物车数据
+            carts_cookies = request.COOKIES.get('carts')
+            #     判断数据是否存在
+            if carts_cookies is not None:
+                #     存在则解码 {sku_id: {count:xxx,selected:xxx}}
+                carts = pickle.loads(base64.b64decode(carts_cookies))
+            else:
+                #     不存在则初始化字典
+                carts = {}
+
+            # if selected:
+            #     # 5.2 全选 {}，都置为 True
+            #
+            # else:
+            #     # 取消全选   都置为 false
+            for sku_id in carts:
+                carts[sku_id]['selected'] = selected
+
+            #     5.3 我们需要对字典数据进行编码和base64的处理
+            new_carts = base64.b64encode(pickle.dumps(carts))
+            #     5.4 设置cookie
+            response = JsonResponse({'code': 0, 'msg': 'ok'})
+            response.set_cookie('carts', new_carts.decode(), max_age=3600*24*7)
+            #     5.5 返回响应
+            return response
