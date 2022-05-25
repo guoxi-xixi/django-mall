@@ -4,8 +4,8 @@
 # 技术栈
 ## 后端
 
-- python
-- Django
+- python  -V 3.6
+- Django  -V 3.2.13
 - MySQL
 - Redis
 - docker
@@ -20,4 +20,4 @@
 - html
 - css
 - js
-- vue
+- vue -V 2.5.16
