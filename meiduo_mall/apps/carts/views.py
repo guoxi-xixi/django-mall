@@ -343,3 +343,200 @@ class CartsView(View):
             response.set_cookie('carts', carts_base64.decode(), max_age=3600*24*7)
             #     5.5 返回响应
             return response
+
+    """
+        1.判断用户是否登录
+        2.登录用户查询redis
+            2.1 连接redis
+            2.2 hash        {sku_id:count}
+            2.3 set         {sku_id}
+            2.4 遍历判断
+            2.5 根据商品商品id查询商品信息
+            2.6 将对象数据转换为字典数据
+            2.7 返回响应
+        3.未登录用户查询cookie
+            3.1 读取cookie数据
+            3.2 判断是否存在购物车数据
+                如果存在，则解码            {sku_id:{count:xxx,selected:xxx}}
+                如果不存在，初始化空字典
+            3.3 根据商品id查询商品信息
+            3.4 将对象数据转换为字典数据
+            3.5 返回响应
+
+
+        1.判断用户是否登录
+        2.登录用户查询redis
+            2.1 连接redis
+            2.2 hash        {sku_id:count}
+            2.3 set         {sku_id}
+            2.4 遍历判断
+        3.未登录用户查询cookie
+            3.1 读取cookie数据
+            3.2 判断是否存在购物车数据
+                如果存在，则解码            {sku_id:{count:xxx,selected:xxx}}
+                如果不存在，初始化空字典
+
+        4 根据商品id查询商品信息
+        5 将对象数据转换为字典数据
+        6 返回响应
+    """
+
+    def get(self, request):
+        # 1.判断用户是否登录
+        user = request.user
+        if user.is_authenticated:
+            # 2.登录用户查询redis
+            #     2.1 连接redis
+            redis_cli = get_redis_connection('carts')
+            #     2.2 hash        {sku_id:count}
+            sku_id_counts = redis_cli.hgetall('carts_%'%user.id)
+            #     2.3 set         {sku_id}
+            selected_ids = redis_cli.smembers('selected_%'%user.id)
+            #     2.4 将 redis的数据转换为 和 cookie一样,这样就可以在后续操作的时候 统一操作
+            #     {sku_id:{count:xxx,selected:xxx}}
+            carts = {}
+            for sku_id,count in sku_id_counts.items():
+                carts[int(sku_id)] = {
+                    'count': int(count),
+                    'selected': sku_id in selected_ids
+                }
+
+        else:
+            # 3.未登录用户查询cookie
+            #     3.1 读取cookie数据
+            carts_cookies = request.COOKIES.get('carts')
+            # 'gAN9cQAoSwF9cQEoWAUAAABjb3VudHECSwxYCAAAAHNlbGVjdGVkcQOIdUsQfXEEKFgFAAAAY291bnRxBUsDWAgAAABzZWxlY3RlZHEGiHVLCn1xByhYBQAAAGNvdW50cQhLA1gIAAAAc2VsZWN0ZWRxCYh1dS4='
+            #     3.2 判断是否存在购物车数据
+            if carts_cookies is not None:
+                #         如果存在，则解码  {sku_id:{count:xxx,selected:xxx}}
+                carts = pickle.loads(base64.b64decode(carts_cookies))
+            else:
+                #         如果不存在，初始化空字典
+                carts = {}
+
+        # {sku_id: {count: xxx, selected: xxx}}
+        # 4 根据商品id查询商品信息
+            # 可以直接遍历 carts
+            # 也可以获取 字典的最外层的key，最外层的所有key就是商品id
+        sku_ids = carts.keys()
+        # [1,2,3,4,5],可以遍历查询,也可以用 in
+        try:
+            skus = SKU.objects.filter(id__in=sku_ids)
+            # 5 将对象数据转换为字典数据
+            sku_list = []
+            for sku in skus:
+                sku_list.append({
+                    'id': sku.id,
+                    'price': int(sku.price),
+                    'name': sku.name,
+                    'default_image_url': sku.default_image.url,
+                    'selected': carts[sku.id]['selected'],  # 选中状态
+                    'count': int(carts[sku.id]['count']),  # 数量 强制转换一下
+                    'amount': sku.price * carts[sku.id]['count']
+                })
+        except Exception as e:
+            logger.error(e)
+            return JsonResponse({'code': 400, 'errmsg': '获取商品数据失败'})
+
+        # 6 返回响应
+        return JsonResponse({'code': 0, 'msg': 'ok', 'cart_skus': sku_list})
+
+    """
+        1.获取用户信息
+        2.接收数据
+        3.验证数据
+        4.登录用户更新redis
+            4.1 连接redis
+            4.2 hash
+            4.3 set
+            4.4 返回响应
+        5.未登录用户更新cookie
+            5.1 先读取购物车数据
+                判断有没有。
+                如果有则解密数据
+                如果没有则初始化一个空字典
+            5.2 更新数据
+            5.3 重新最字典进行编码和base64加密
+            5.4 设置cookie
+            5.5 返回响应
+    """
+
+    def put(self, request):
+        # 1.获取用户信息
+        user = request.user
+        # 2.接收数据
+        data = json.loads(request.body.decode())
+        sku_id = data.get('sku_id')
+        selected = data.get('selected')
+        count = data.get('count')
+        # 3.验证数据
+        if not all([sku_id, selected, count]):
+            return JsonResponse({'code': 400, 'errmsg': '参数缺失'})
+        # 验证商品
+        try:
+            sku = SKU.objects.get(id=sku_id)
+        except Exception as e:
+            logger.error(e)
+            return JsonResponse({'code': 400, 'errmsg': '商品不存在'})
+        # 转换count
+        try:
+            count = int(count)
+        except Exception as e:
+            logger.error('转换count失败'.join(e))
+            count = 1
+
+        if user.is_authenticated:
+            # 4.登录用户更新redis
+            #     4.1 连接redis
+            redis_cli = get_redis_connection('carts')
+            pipeline = redis_cli.pipeline()
+            #     4.2 hash
+            pipeline.hset('carts_%s'%user.id, sku_id, count)
+            #     4.3 set
+            if selected:
+                # selected:true, 添加到redis中，set唯一，不考虑重复问题
+                pipeline.sadd('selected_%s'%user.id, sku_id)
+            else:
+                # selected:false，从redis中移除
+                pipeline.srem('selected_%s'%user.id, sku_id)
+            # 执行redis pipeline
+            pipeline.execute()
+
+            # 拼接返回数据
+            cart_sku = {
+                'count': count,
+                'selected': selected
+            }
+            #     4.4 返回响应
+            return JsonResponse({'code': 0, 'msg': 'ok', 'cart_sku': cart_sku})
+        else:
+            # 5.未登录用户更新cookie
+            #     5.1 先读取购物车数据
+            carts_cookies = request.COOKIES.get('carts')
+            #         判断有没有。
+            if carts_cookies is not None:
+                # 如果有则解密数据
+                carts = pickle.loads(base64.b64decode(carts_cookies))
+            else:
+                # 如果没有则初始化一个空字典
+                carts = {}
+            #     5.2 更新数据 {sku_id: {count:xxx,selected:xxx}}
+            if sku_id in carts:
+                carts[sku_id] = {
+                    'count': count,
+                    'selected': selected
+                }
+            else:
+                return JsonResponse({'code': 0, 'errmsg': '购物车中没有该商品'})
+            #     5.3 重新最字典进行编码和base64加密
+            new_carts = base64.b64encode(pickle.dumps(carts))
+            # 拼接数据
+            cart_sku = {
+                'count': count,
+                'selected': selected
+            }
+            #     5.4 设置cookie
+            response = JsonResponse({'code': 0, 'msg': 'ok', 'cart_sku': cart_sku})
+            response.set_cookie('carts', new_carts.decode(),max_age=3600*24*7)
+            #     5.5 返回响应
+            return response
