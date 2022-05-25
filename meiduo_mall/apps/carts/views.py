@@ -264,12 +264,21 @@ class CartsView(View):
             # 4.登录用户保存redis
             #     4.1 连接redis
             redis_cli = get_redis_connection('carts')
+            pipeline = redis_cli.pipeline()
             #     4.2 操作hash
             # redis_cli.hset(key,field,value)
-            redis_cli.hset('carts_%s'%user.id, sku_id, count)
+            # redis_cli.hset('carts_%s'%user.id, sku_id, count)
+            # pipeline.hset('carts_%s'%user.id, sku_id, count)  # hset 添加会覆盖原数据
+            # 1. 应该先获取之前的数据，然后累加 redis_cli.hset(key,field,value)
+            # 执行累加操作 hincrby会进行累加操作，免去查询
+            pipeline.hincrby('carts_%s'%user.id, sku_id, count)
+
             #     4.3 操作set
             # 默认选中
-            redis_cli.sadd('selected_%s'%user.id, sku_id)
+            # redis_cli.sadd('selected_%s'%user.id, sku_id)
+            pipeline.sadd('selected_%s'%user.id, sku_id)
+            # pipeline执行
+            pipeline.execute()
             #     4.4 返回响应
             return JsonResponse({'code': 0, 'msg': 'ok'})
         else:
@@ -389,9 +398,9 @@ class CartsView(View):
             #     2.1 连接redis
             redis_cli = get_redis_connection('carts')
             #     2.2 hash        {sku_id:count}
-            sku_id_counts = redis_cli.hgetall('carts_%'%user.id)
+            sku_id_counts = redis_cli.hgetall('carts_%s'%user.id)
             #     2.3 set         {sku_id}
-            selected_ids = redis_cli.smembers('selected_%'%user.id)
+            selected_ids = redis_cli.smembers('selected_%s'%user.id)
             #     2.4 将 redis的数据转换为 和 cookie一样,这样就可以在后续操作的时候 统一操作
             #     {sku_id:{count:xxx,selected:xxx}}
             carts = {}
