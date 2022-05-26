@@ -672,3 +672,63 @@ class CartsSelectAllView(View):
             response.set_cookie('carts', new_carts.decode(), max_age=3600*24*7)
             #     5.5 返回响应
             return response
+
+
+class CartsSimpleView(View):
+    """购物车展示"""
+
+    def get(self, request):
+        user = request.user
+        # 1.判断用户是否登录
+        if user.is_authenticated:
+            # 2.登录用户查询 redis
+            redis_cli = get_redis_connection('carts')
+            pipeline = redis_cli.pipeline()
+
+            # hash {2:count,3:count,...}
+            pipeline.hgetall('carts_%s'%user.id)
+            # set [2,3]
+            pipeline.smembers('selected_%s'%user.id)
+
+            result = pipeline.execute()
+            sku_id_count = result[0]
+            selected_ids = result[1]
+
+            # 统一数据格式
+            carts = {}
+
+            for sku_id,count in sku_id_count.items():
+                carts[int(sku_id)] = {
+                    'count': int(count),
+                    'selected': sku_id in selected_ids
+                }
+        else:
+            # 3. 未登录用户查询redis
+            # 3.1 获取cookies 数据
+            carts_cookies = request.COOKIES.get('carts')
+            if carts_cookies is not None:
+                # 解码 {sku_id:{count:xxx,selected:xxx}}
+                carts = pickle.loads(base64.b64decode(carts_cookies))
+            else:
+                carts = {}
+
+        # 4.根据 sku_id 查询商品
+        sku_ids = carts.keys()
+        try:
+            skus = SKU.objects.filter(id__in=sku_ids)
+        except Exception as e:
+            logger.error(e)
+            return JsonResponse({'code': 400, 'errmsg': '获取商品信息失败'})
+        else:
+            # 定义商品列表
+            sku_list = []
+            for sku in skus:
+                sku_list.append({
+                    'id': sku.id,
+                    'name': sku.name,
+                    'count': carts.get(sku.id).get('count'),
+                    'default_image_url': sku.default_image.url
+                })
+
+        # 返回响应
+        return JsonResponse({'code': 0, 'msg': 'ok', 'cart_skus': sku_list})
