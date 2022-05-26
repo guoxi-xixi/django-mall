@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'apps.goods',
     'apps.contents',
     'apps.carts',
+    'apps.orders',
 
     # CORS
     'corsheaders',
