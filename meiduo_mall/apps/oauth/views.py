@@ -162,6 +162,10 @@ class OauthQQView(View):
             response = JsonResponse({'code': 0, 'msg': 'ok'})
             response.set_cookie('username', qquser.user.username)
 
+            # 合并未登录购物车商品
+            from apps.carts.utils import merge_cookie_to_redis
+            response = merge_cookie_to_redis(request, response)
+
             return response
 
     def post(self, request):
@@ -212,6 +216,10 @@ class OauthQQView(View):
         # 7. 返回响应
         response = JsonResponse({'code': 0, 'msg': 'ok'})
         response.set_cookie('username', user.username)
+
+        # 合并未登录购物车商品
+        from apps.carts.utils import merge_cookie_to_redis
+        response = merge_cookie_to_redis(request, response)
 
         return response
 

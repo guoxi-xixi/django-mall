@@ -243,6 +243,12 @@ class LoginView(View):
         response = JsonResponse({'code': 0, 'errmsg': 'ok'})
         # 设置 cookie 首页展示用户信息
         response.set_cookie('username', username)
+
+
+        # 合并未登录购物车商品
+        from apps.carts.utils import merge_cookie_to_redis
+        response = merge_cookie_to_redis(request, response)
+
         return response
 
 
