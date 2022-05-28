@@ -3,4 +3,5 @@ from apps.orders.views import *
 
 urlpatterns = {
     path('orders/settlement/', OrderSettlementView.as_view()),
+    path('orders/commit/', OrderCommitView.as_view()),
 }
