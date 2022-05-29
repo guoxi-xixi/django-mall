@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'apps.contents',
     'apps.carts',
     'apps.orders',
+    'apps.payment',
 
     # CORS
     'corsheaders',
@@ -311,3 +312,13 @@ CRONJOBS = [
     # 每1分钟生成一次首页静态文件
     ('*/1 * * * *', 'apps.contents.crons.generic_meiduo_index', '>> ' + os.path.join(BASE_DIR, 'logs/crontab.log')),
 ]
+
+############################ 支付宝支付相关配置 ###########################################
+ALIPAY_APPID = '2016091600523030'
+ALIPAY_DEBUG = True
+ALIPAY_URL = 'https://openapi.alipaydev.com/gateway.do'
+ALIPAY_RETURN_URL = 'http://www.meiduo.site:8080/pay_success.html'
+# APP_PRIVATE_KEY_PATH = os.path.join(BASE_DIR, 'apps/payment/keys/app_private_key.pem')
+# ALIPAY_PUBLIC_KEY_PATH = os.path.join(BASE_DIR, 'apps/payment/keys/alipay_public_key.pem')
+APP_PRIVATE_KEY_PATH = BASE_DIR / 'apps/payment/keys/app_private_key.pem'
+ALIPAY_PUBLIC_KEY_PATH = BASE_DIR / 'apps/payment/keys/alipay_public_key.pem'
