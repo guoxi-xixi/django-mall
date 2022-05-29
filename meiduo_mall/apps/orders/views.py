@@ -227,9 +227,9 @@ class OrderCommitView(LoginRequiredJSONMixin, View):
         # else:
         #     status=1
         if pay_method == OrderInfo.PAY_METHODS_ENUM['CASH']:
-            status = 2  # 货到付款，修改订单状态为 2
+            status = OrderInfo.ORDER_STATUS_ENUM['UNSEND']  # 货到付款，修改订单状态为 2
         else:
-            status = 1  # 支付宝，修改订单状态为 1
+            status = OrderInfo.ORDER_STATUS_ENUM['UNPAID']  # 支付宝，修改订单状态为 1
 
         # 总数量，总金额， = 0
         total_count = 0
@@ -328,6 +328,8 @@ class OrderCommitView(LoginRequiredJSONMixin, View):
                                 count=count,
                                 price=sku.price
                             )
+                            # 下单成功或者失败就跳出循环
+                            break
 
             #   3.更新订单的总金额和总数量
             order_info.total_amount += freight  # 添加运费
