@@ -101,14 +101,14 @@ DATABASES = {
         'PASSWORD': '123456',
         'NAME': 'meiduo_mall',
     },
-    'slave': {      # 读（从机）
-        'ENGINE': 'django.db.backends.mysql',
-        'HOST': '127.0.0.1',
-        'PORT': 8306,
-        'USER': 'root',
-        'PASSWORD': '123456',
-        'NAME': 'meiduo_mall',
-    },
+    # 'slave': {      # 读（从机）
+    #     'ENGINE': 'django.db.backends.mysql',
+    #     'HOST': '127.0.0.1',
+    #     'PORT': 8306,
+    #     'USER': 'root',
+    #     'PASSWORD': '123456',
+    #     'NAME': 'meiduo_mall',
+    # },
 }
 # 配置数据库读写路由 -- docker部署异常，暂缓
 # DATABASE_ROUTERS = ['utils.db_router.MasterSlaveDBRouter']

@@ -97,3 +97,6 @@ def merge_cookie_to_redis(request, response):
         response.delete_cookie('carts')
 
         return response
+
+    # 无商品数据直接返回 响应
+    return response
