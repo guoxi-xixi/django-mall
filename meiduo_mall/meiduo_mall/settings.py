@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'apps.carts',
     'apps.orders',
     'apps.payment',
+    'apps.meiduo_admin',
 
     # CORS
     'corsheaders',
@@ -252,8 +253,10 @@ AUTH_USER_MODEL = 'users.User'
 CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:8000',
     'http://127.0.0.1:8080',
+    'http://127.0.0.1:8090',
     'http://www.meiduo.site:8000',
     'http://www.meiduo.site:8080',
+    'http://www.meiduo.site:8090',
 ]
 CORS_ALLOW_CREDENTIALS = True  # 允许携带cookie
 
@@ -331,3 +334,20 @@ ALIPAY_RETURN_URL = 'http://www.meiduo.site:8080/pay_success.html'
 # ALIPAY_PUBLIC_KEY_PATH = os.path.join(BASE_DIR, 'apps/payment/keys/alipay_public_key.pem')
 APP_PRIVATE_KEY_PATH = BASE_DIR / 'apps/payment/keys/app_private_key.pem'
 ALIPAY_PUBLIC_KEY_PATH = BASE_DIR / 'apps/payment/keys/alipay_public_key.pem'
+
+
+############################ Django RESTful ###########################################
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ),
+}
+import datetime
+JWT_AUTH = {
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),
+}
