@@ -339,9 +339,9 @@ ALIPAY_PUBLIC_KEY_PATH = BASE_DIR / 'apps/payment/keys/alipay_public_key.pem'
 ############################ Django RESTful Framework ###########################################
 # DRF
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    ),
+    # 'DEFAULT_PERMISSION_CLASSES': (
+    #     'rest_framework.permissions.IsAuthenticated',
+    # ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
