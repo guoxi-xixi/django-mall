@@ -336,7 +336,8 @@ APP_PRIVATE_KEY_PATH = BASE_DIR / 'apps/payment/keys/app_private_key.pem'
 ALIPAY_PUBLIC_KEY_PATH = BASE_DIR / 'apps/payment/keys/alipay_public_key.pem'
 
 
-############################ Django RESTful ###########################################
+############################ Django RESTful Framework ###########################################
+# DRF
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
@@ -348,6 +349,11 @@ REST_FRAMEWORK = {
     ),
 }
 import datetime
+# JWT
 JWT_AUTH = {
+    # 重写jwt返回的response,默认只返回token
+    # 'JWT_RESPONSE_PAYLOAD_HANDLER': 'rest_framework_jwt.utils.jwt_response_payload_handler',
+    'JWT_RESPONSE_PAYLOAD_HANDLER': 'apps.meiduo_admin.user.jwt_response_payload_handler',
+    # 设置token 过期时间
     'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),
 }
