@@ -1,7 +1,7 @@
 from django.urls import path
 # from rest_framework_jwt.views import obtain_jwt_token
 from apps.meiduo_admin.user import meiduo_token
-from apps.meiduo_admin.views import home
+from apps.meiduo_admin.views import home, users
 
 urlpatterns = {
     # 项目根urls 中配置 根路由可省略meiduo_admin
@@ -19,4 +19,6 @@ urlpatterns = {
     path('statistical/total_count/', home.UserCountAPIView.as_view()),
     # 日新增用户统计
     path('statistical/day_increment/', home.DailyUserCountAPIView.as_view()),
+    # 用户 - user
+    path('users/', users.UserAPIView.as_view()),
 }
