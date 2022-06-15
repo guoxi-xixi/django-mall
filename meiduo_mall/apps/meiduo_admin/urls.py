@@ -1,9 +1,9 @@
 from django.urls import path
 # from rest_framework_jwt.views import obtain_jwt_token
 from apps.meiduo_admin.user import meiduo_token
-from apps.meiduo_admin.views import home, users
+from apps.meiduo_admin.views import home, users, images
 
-urlpatterns = {
+urlpatterns = [
     # 项目根urls 中配置 根路由可省略meiduo_admin
     # path('meiduo_admin/authorizations/', obtain_jwt_token),
     # path('authorizations/', obtain_jwt_token),    # 系统默认视图
@@ -19,6 +19,18 @@ urlpatterns = {
     path('statistical/total_count/', home.UserCountAPIView.as_view()),
     # 日新增用户统计
     path('statistical/day_increment/', home.DailyUserCountAPIView.as_view()),
-    # 用户 - user
+    # 用户管理 - user
     path('users/', users.UserAPIView.as_view()),
-}
+    # 图片管理 - skuid
+    path('skus/simple/', images.ImageSKUListAPIView.as_view()),
+]
+
+# 视图集 viewset 路由
+from rest_framework.routers import DefaultRouter
+# 创建路由实例
+router = DefaultRouter()
+# 注册路由
+# 注册图片管理路由
+router.register('skus/images', images.ImageModelViewSet, basename='images')
+# 将router生成的路由追加到urlpatterns中
+urlpatterns += router.urls
