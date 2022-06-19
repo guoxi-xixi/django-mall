@@ -15,3 +15,16 @@ class SKUModelViewSet(ModelViewSet):
     serializer_class = SKUModelSerializer
 
     pagination_class = PageNum
+
+
+#######################三级分类数据##############################
+from apps.goods.models import GoodsCategory
+from rest_framework.generics import ListAPIView
+from apps.meiduo_admin.serializers.skus import GoodsCategoryModelSerializer
+
+class GoodsCategoryListAPIView(ListAPIView):
+    # 三级视图 -- 最小级别，筛选出没有子级的 即为三级视图
+    queryset = GoodsCategory.objects.filter(subs=None)
+
+    serializer_class = GoodsCategoryModelSerializer
+

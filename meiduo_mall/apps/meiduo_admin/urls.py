@@ -23,6 +23,8 @@ urlpatterns = [
     path('users/', users.UserAPIView.as_view()),
     # 图片管理 - skuid
     path('skus/simple/', images.ImageSKUListAPIView.as_view()),
+    # SKU - 三级分类
+    path('skus/categories/', skus.GoodsCategoryListAPIView.as_view()),
 ]
 
 # 视图集 viewset 路由

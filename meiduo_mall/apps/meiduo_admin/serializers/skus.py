@@ -7,3 +7,12 @@ class SKUModelSerializer(serializers.ModelSerializer):
         model = SKU
         fields = '__all__'
 
+
+##########三级分类数据序列化器############################################
+from apps.goods.models import GoodsCategory
+
+class GoodsCategoryModelSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = GoodsCategory
+        fields = ['id', 'name']
