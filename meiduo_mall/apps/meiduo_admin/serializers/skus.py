@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 # SKUSpecification 序列化器 -- sku规格和规格选项
 class SKUSpecificationModelSerializer(serializers.ModelSerializer):
-
+    # 默认外键只读，修改字段属性
     spec_id = serializers.IntegerField()
     option_id = serializers.IntegerField()
 
@@ -76,12 +76,23 @@ class SKUModelSerializer(serializers.ModelSerializer):
 
         # 1. 把 规格和规格选项 单独获取出来
         specs = validated_data.pop('specs')
-        # 2. 先保存sku数据
-        sku = SKU.objects.create(**validated_data)
-        # 3. 对规格和规格选项进行遍历保存
-        for spec in specs:
-            # spec = {spec_id: "4", option_id: 8}
-            SKUSpecification.objects.create(sku=sku, **spec)
+        from django.db import transaction
+        with transaction.atomic():
+            # 开启事务 - 事务开启点
+            save_point = transaction.savepoint()
+            try:
+                # 2. 先保存sku数据
+                sku = SKU.objects.create(**validated_data)
+                # 3. 对规格和规格选项进行遍历保存
+                for spec in specs:
+                    # spec = {spec_id: "4", option_id: 8}
+                    SKUSpecification.objects.create(sku=sku, **spec)
+            except Exception as e:
+                # 事务回滚点
+                transaction.savepoint_rollback(save_point)
+            else:
+                # 提交事务
+                transaction.savepoint_commit(save_point)
 
         return sku
 
