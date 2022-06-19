@@ -16,3 +16,13 @@ class GoodsCategoryModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoodsCategory
         fields = ['id', 'name']
+
+
+#######################SPU数据##############################
+from apps.goods.models import SPU
+
+class SPUModelSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SPU
+        fields = ['id', 'name']
