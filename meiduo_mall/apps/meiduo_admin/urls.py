@@ -1,7 +1,7 @@
 from django.urls import path
 # from rest_framework_jwt.views import obtain_jwt_token
 from apps.meiduo_admin.user import meiduo_token
-from apps.meiduo_admin.views import home, users, images
+from apps.meiduo_admin.views import home, users, images, skus
 
 urlpatterns = [
     # 项目根urls 中配置 根路由可省略meiduo_admin
@@ -32,5 +32,9 @@ router = DefaultRouter()
 # 注册路由
 # 注册图片管理路由
 router.register('skus/images', images.ImageModelViewSet, basename='images')
+
+# 注册sku路由
+router.register('skus', skus.SKUModelViewSet, basename='skus')
+
 # 将router生成的路由追加到urlpatterns中
 urlpatterns += router.urls
