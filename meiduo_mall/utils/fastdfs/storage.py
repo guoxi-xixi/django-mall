@@ -41,3 +41,9 @@ class MyStorage(Storage):
         # return 'http://127.0.0.1:8888/' + name
         # return 'http://image.meiduo.site:8888/' + name
         return self.fdfs_base_url + name
+
+    def exists(self, name):
+        # 判断图片是否存在
+        # Fdfs 自己可以实现 图片重名的处理
+        # 返回False 说明图片不存在,就直接上传就可以
+        return False
