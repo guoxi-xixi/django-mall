@@ -27,6 +27,8 @@ urlpatterns = [
     path('skus/categories/', skus.GoodsCategoryListAPIView.as_view()),
     # SKU - SPU信息展示
     path('goods/simple/', skus.SPUListAPIView.as_view()),
+    # SKU - specs
+    path('goods/<spu_id>/specs/', skus.SPUSpecAPIView.as_view()),
 ]
 
 # 视图集 viewset 路由

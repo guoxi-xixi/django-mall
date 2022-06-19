@@ -26,3 +26,23 @@ class SPUModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = SPU
         fields = ['id', 'name']
+
+
+##########SPU 规格和规格选项的序列化器############################################
+from apps.goods.models import SPUSpecification, SpecificationOption
+
+# 规格选项 序列化器
+class OptionModelSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SpecificationOption
+        fields = ['id', 'value']
+
+# SPU 规格序列化器
+class SpecsModelSerializer(serializers.ModelSerializer):
+    # 创建 子模版数据
+    options = OptionModelSerializer(many=True)
+
+    class Meta:
+        model = SPUSpecification
+        fields = ['id', 'name', 'options']
