@@ -71,3 +71,25 @@ class GroupPermissionListAPIView(ListAPIView):
 
     serializer_class = PermissionModelSerializer
 
+
+###############管理员管理###################################################
+from apps.users.models import User
+from apps.meiduo_admin.serializers.permission import AdminUserModelSerializer
+
+class AdminUserModelViewSet(ModelViewSet):
+
+    queryset = User.objects.filter(is_staff=True)
+
+    serializer_class = AdminUserModelSerializer
+
+    pagination_class = PageNum
+
+
+##############管理员管理-获取所有组#############################################
+class SimpleGroupListAPIView(ListAPIView):
+
+    queryset = Group.objects.all()
+
+    serializer_class = GroupModelSerializer
+
+

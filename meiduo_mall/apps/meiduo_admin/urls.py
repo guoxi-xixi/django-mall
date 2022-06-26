@@ -33,6 +33,8 @@ urlpatterns = [
     path('permission/content_types/', permission.ContentTypeListAPIView.as_view()),
     # permission/simple/ - 组管理权限列表
     path('permission/simple/', permission.GroupPermissionListAPIView.as_view()),
+    # permission/groups/simple/ - 管理员管理 组管理列表
+    path('permission/groups/simple/', permission.SimpleGroupListAPIView.as_view()),
 ]
 
 # 视图集 viewset 路由
@@ -51,6 +53,9 @@ router.register('permission/perms', permission.PermissionModelViewSet, basename=
 
 # 注册 group 路由
 router.register('permission/groups', permission.GroupModelViewSet, basename='groups')
+
+# 注册 admins 路由
+router.register('permission/admins', permission.AdminUserModelViewSet, basename='admins')
 
 # 将router生成的路由追加到urlpatterns中
 urlpatterns += router.urls
