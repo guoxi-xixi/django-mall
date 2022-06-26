@@ -1,7 +1,7 @@
 from django.urls import path
 # from rest_framework_jwt.views import obtain_jwt_token
 from apps.meiduo_admin.user import meiduo_token
-from apps.meiduo_admin.views import home, users, images, skus
+from apps.meiduo_admin.views import home, users, images, skus, permission
 
 urlpatterns = [
     # 项目根urls 中配置 根路由可省略meiduo_admin
@@ -29,6 +29,8 @@ urlpatterns = [
     path('goods/simple/', skus.SPUListAPIView.as_view()),
     # SKU - specs
     path('goods/<spu_id>/specs/', skus.SPUSpecAPIView.as_view()),
+    # ContentType
+    path('permission/content_types/', permission.ContentTypeListAPIView.as_view()),
 ]
 
 # 视图集 viewset 路由
@@ -41,6 +43,9 @@ router.register('skus/images', images.ImageModelViewSet, basename='images')
 
 # 注册sku路由
 router.register('skus', skus.SKUModelViewSet, basename='skus')
+
+# 注册 permission 路由
+router.register('permission/perms', permission.PermissionModelViewSet, basename='perms')
 
 # 将router生成的路由追加到urlpatterns中
 urlpatterns += router.urls
