@@ -22,3 +22,12 @@ class ContentTypeModelSerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 
+#####################组#################################
+from django.contrib.auth.models import Group
+
+class GroupModelSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Group
+        fields = '__all__'
+

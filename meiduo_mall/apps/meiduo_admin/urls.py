@@ -31,6 +31,8 @@ urlpatterns = [
     path('goods/<spu_id>/specs/', skus.SPUSpecAPIView.as_view()),
     # ContentType
     path('permission/content_types/', permission.ContentTypeListAPIView.as_view()),
+    # permission/simple/ - 组管理权限列表
+    path('permission/simple/', permission.GroupPermissionListAPIView.as_view()),
 ]
 
 # 视图集 viewset 路由
@@ -46,6 +48,9 @@ router.register('skus', skus.SKUModelViewSet, basename='skus')
 
 # 注册 permission 路由
 router.register('permission/perms', permission.PermissionModelViewSet, basename='perms')
+
+# 注册 group 路由
+router.register('permission/groups', permission.GroupModelViewSet, basename='groups')
 
 # 将router生成的路由追加到urlpatterns中
 urlpatterns += router.urls
