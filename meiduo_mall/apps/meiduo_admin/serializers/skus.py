@@ -96,6 +96,43 @@ class SKUModelSerializer(serializers.ModelSerializer):
 
         return sku
 
+    def update(self, instance, validated_data):
+        # 1. pop 规格
+        specs = validated_data.pop('specs')
+
+        from django.db import transaction
+        with transaction.atomic():
+            # 开启事务 - 事务开启点
+            save_point = transaction.savepoint()
+            try:
+                # 2. 更新sku数据
+                # 方案一：super() 调用父类 update 更新数据
+                super(SKUModelSerializer, self).update(instance, validated_data)
+                # super().update(instance, validated_data)
+
+                # 方案二： 自己实现
+                # 获取pk
+                # pk = self.context['view'].kwargs.get('pk')
+                # # 更新数据
+                # SKU.objects.filter(pk=pk).update(**validated_data)
+
+                # 方案三： 用父类的源码实现
+                # for attr, value in validated_data.items():
+                #     setattr(instance, attr, value)
+                # instance.save()
+
+                # 3. 更新规格和规格选项
+                for spec in specs:
+                    SKUSpecification.objects.filter(sku=instance, spec_id=spec.get('spec_id')).update(option_id=spec.get('option_id'))
+            except Exception as e:
+                # 事务回滚点
+                transaction.savepoint_rollback(save_point)
+            finally:
+                # 提交事务
+                transaction.savepoint_commit(save_point)
+
+        return instance
+
 
 
 ##########三级分类数据序列化器############################################
