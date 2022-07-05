@@ -1,7 +1,7 @@
 from django.urls import path
 # from rest_framework_jwt.views import obtain_jwt_token
 from apps.meiduo_admin.user import meiduo_token
-from apps.meiduo_admin.views import home, users, images, skus, permission
+from apps.meiduo_admin.views import home, users, images, skus, permission, orders
 
 urlpatterns = [
     # 项目根urls 中配置 根路由可省略meiduo_admin
@@ -35,6 +35,9 @@ urlpatterns = [
     path('permission/simple/', permission.GroupPermissionListAPIView.as_view()),
     # permission/groups/simple/ - 管理员管理 组管理列表
     path('permission/groups/simple/', permission.SimpleGroupListAPIView.as_view()),
+    # # orders - 订单管理
+    # path('orders/', orders.OrderListAPIView.as_view()),
+    # path('orders/<pk>/', orders.OrderGoodsRetrieveUpdateAPIView.as_view()),
 ]
 
 # 视图集 viewset 路由
@@ -56,6 +59,8 @@ router.register('permission/groups', permission.GroupModelViewSet, basename='gro
 
 # 注册 admins 路由
 router.register('permission/admins', permission.AdminUserModelViewSet, basename='admins')
+# 注册 orders 路由
+router.register('orders', orders.OrderModelViewSet, basename='orders')
 
 # 将router生成的路由追加到urlpatterns中
 urlpatterns += router.urls
