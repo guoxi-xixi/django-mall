@@ -38,6 +38,8 @@ urlpatterns = [
     # # orders - 订单管理
     # path('orders/', orders.OrderListAPIView.as_view()),
     # path('orders/<pk>/', orders.OrderGoodsRetrieveUpdateAPIView.as_view()),
+    # order 状态的修改
+    # path('orders/<order_id>/status/', orders.OrderStatusRetrieveUpdateAPIView.as_view()),
 ]
 
 # 视图集 viewset 路由
@@ -64,3 +66,5 @@ router.register('orders', orders.OrderModelViewSet, basename='orders')
 
 # 将router生成的路由追加到urlpatterns中
 urlpatterns += router.urls
+
+print(urlpatterns)

@@ -3,9 +3,10 @@ from rest_framework import serializers
 from apps.goods.models import SKU
 
 
+
 class SKUModelSerializer(serializers.ModelSerializer):
     """
-    商品sku表序列化器
+        商品sku表序列化器
     """
     class Meta:
         model = SKU
@@ -15,7 +16,7 @@ class SKUModelSerializer(serializers.ModelSerializer):
 
 class OrderGoodsModelSerializer(serializers.ModelSerializer):
     """
-    订单商品序列化器
+        订单商品序列化器
     """
     # 嵌套返回sku表数据
     sku = SKUModelSerializer()
@@ -28,7 +29,7 @@ class OrderGoodsModelSerializer(serializers.ModelSerializer):
 
 class OrderModelSerializer(serializers.ModelSerializer):
     """
-    订单序列化器
+        订单序列化器
     """
 
     # 关联嵌套返回 用户表数据和订单商品表数据
@@ -38,7 +39,4 @@ class OrderModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderInfo
         fields = '__all__'
-
-
-
 
