@@ -3,7 +3,6 @@ from rest_framework import serializers
 from apps.goods.models import SKU
 
 
-
 class SKUModelSerializer(serializers.ModelSerializer):
     """
         商品sku表序列化器
@@ -39,4 +38,3 @@ class OrderModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderInfo
         fields = '__all__'
-

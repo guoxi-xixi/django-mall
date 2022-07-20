@@ -1,7 +1,7 @@
 from django.urls import path
 # from rest_framework_jwt.views import obtain_jwt_token
 from apps.meiduo_admin.user import meiduo_token
-from apps.meiduo_admin.views import home, users, images, skus, permission, orders
+from apps.meiduo_admin.views import home, users, images, skus, permission, orders, spu
 
 urlpatterns = [
     # 项目根urls 中配置 根路由可省略meiduo_admin
@@ -63,6 +63,9 @@ router.register('permission/groups', permission.GroupModelViewSet, basename='gro
 router.register('permission/admins', permission.AdminUserModelViewSet, basename='admins')
 # 注册 orders 路由
 router.register('orders', orders.OrderModelViewSet, basename='orders')
+
+# 注册 SPU 路由
+router.register('goods', spu.SPUModelViewSet, basename='spu')
 
 # 将router生成的路由追加到urlpatterns中
 urlpatterns += router.urls

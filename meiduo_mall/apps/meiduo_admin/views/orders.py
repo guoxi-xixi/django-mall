@@ -52,6 +52,3 @@ class OrderModelViewSet(ModelViewSet):
             'order_id': pk,
             'status': status
         })
-
-
-
