@@ -40,6 +40,8 @@ urlpatterns = [
     # path('orders/<pk>/', orders.OrderGoodsRetrieveUpdateAPIView.as_view()),
     # order 状态的修改
     # path('orders/<order_id>/status/', orders.OrderStatusRetrieveUpdateAPIView.as_view()),
+    # SPU Brand品牌列表的获取
+    path('goods/brands/simple/', spu.BrandSimpleListAPIView.as_view()),
 ]
 
 # 视图集 viewset 路由

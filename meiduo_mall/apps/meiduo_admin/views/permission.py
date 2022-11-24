@@ -1,4 +1,3 @@
-
 # 用户
 from apps.users.models import User
 # 组
@@ -43,12 +42,15 @@ class PermissionModelViewSet(ModelViewSet):
 from django.contrib.auth.models import ContentType
 from rest_framework.generics import ListAPIView
 from apps.meiduo_admin.serializers.permission import ContentTypeModelSerializer
+from rest_framework.permissions import IsAdminUser
 
 class ContentTypeListAPIView(ListAPIView):
 
     queryset = ContentType.objects.all()
 
     serializer_class = ContentTypeModelSerializer
+
+    permission_classes = [IsAdminUser]
 
 
 ############组管理################################################

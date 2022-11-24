@@ -1,8 +1,9 @@
 from rest_framework.viewsets import ModelViewSet
+
 from apps.goods.models import SKU
 from apps.meiduo_admin.serializers.skus import SKUModelSerializer
 from apps.meiduo_admin.utils import PageNum
-from rest_framework.permissions import IsAdminUser, DjangoModelPermissions
+
 
 class SKUModelViewSet(ModelViewSet):
 
@@ -20,13 +21,14 @@ class SKUModelViewSet(ModelViewSet):
     # 添加权限
     # IsAdminUser 校验是Admin用户
     # DjangoModelPermissions 对于模型权限的验证
-    permission_classes = [IsAdminUser, DjangoModelPermissions]
+    # permission_classes = [IsAdminUser, DjangoModelPermissions]
 
 
 #######################三级分类数据##############################
 from apps.goods.models import GoodsCategory
 from rest_framework.generics import ListAPIView
 from apps.meiduo_admin.serializers.skus import GoodsCategoryModelSerializer
+
 
 class GoodsCategoryListAPIView(ListAPIView):
     # 三级视图 -- 最小级别，筛选出没有子级的 即为三级视图
@@ -42,8 +44,8 @@ class GoodsCategoryListAPIView(ListAPIView):
 from apps.meiduo_admin.serializers.skus import SPUModelSerializer
 from apps.goods.models import SPU
 
-class SPUListAPIView(ListAPIView):
 
+class SPUListAPIView(ListAPIView):
     queryset = SPU.objects.all()
 
     serializer_class = SPUModelSerializer
@@ -66,9 +68,10 @@ SPU --> SPUSpecification(商品SPU规格) -->SpecificationOption(规格选项)
 
 """
 from rest_framework.views import APIView
-from apps.goods.models import SPUSpecification, SpecificationOption
+from apps.goods.models import SPUSpecification
 from apps.meiduo_admin.serializers.skus import SpecsModelSerializer
 from rest_framework.response import Response
+
 
 class SPUSpecAPIView(APIView):
 

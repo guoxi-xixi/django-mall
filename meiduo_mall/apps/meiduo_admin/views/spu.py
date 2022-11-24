@@ -5,8 +5,9 @@
 # @Author  : xixi
 
 from rest_framework.viewsets import ModelViewSet
-from apps.goods.models import SPU
-from apps.meiduo_admin.serializers.spu import SPUModelSerializer
+from rest_framework.generics import ListAPIView
+from apps.goods.models import SPU, Brand
+from apps.meiduo_admin.serializers.spu import SPUModelSerializer, BrandsModelSerializer
 from apps.meiduo_admin.utils import PageNum
 from rest_framework.permissions import IsAdminUser
 
@@ -26,3 +27,10 @@ class SPUModelViewSet(ModelViewSet):
     pagination_class = PageNum
 
     permission_classes = [IsAdminUser]
+
+
+class BrandSimpleListAPIView(ListAPIView):
+    """品牌列表"""
+    queryset = Brand.objects.all()
+
+    serializer_class = BrandsModelSerializer
