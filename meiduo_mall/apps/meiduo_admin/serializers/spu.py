@@ -5,7 +5,7 @@
 # @Author  : xixi
 
 from rest_framework import serializers
-from apps.goods.models import SPU, Brand
+from apps.goods.models import SPU
 
 
 class SPUModelSerializer(serializers.ModelSerializer):
@@ -18,14 +18,3 @@ class SPUModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = SPU
         fields = '__all__'
-
-
-class BrandsModelSerializer(serializers.ModelSerializer):
-    """
-        品牌序列化器
-    """
-    name = serializers.CharField()
-
-    class Meta:
-        model = Brand
-        fields = ['id', 'name']

@@ -53,6 +53,7 @@ from apps.users.models import User
 
 from apps.meiduo_admin.utils import PageNum
 
+
 class UserAPIView(ListCreateAPIView):
 
     # queryset = User.objects.all()

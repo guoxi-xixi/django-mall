@@ -1,7 +1,7 @@
 from django.urls import path
 # from rest_framework_jwt.views import obtain_jwt_token
 from apps.meiduo_admin.user import meiduo_token
-from apps.meiduo_admin.views import home, users, images, skus, permission, orders, spu
+from apps.meiduo_admin.views import home, users, images, skus, permission, orders, spu, brands
 
 urlpatterns = [
     # 项目根urls 中配置 根路由可省略meiduo_admin
@@ -41,11 +41,12 @@ urlpatterns = [
     # order 状态的修改
     # path('orders/<order_id>/status/', orders.OrderStatusRetrieveUpdateAPIView.as_view()),
     # SPU Brand品牌列表的获取
-    path('goods/brands/simple/', spu.BrandSimpleListAPIView.as_view()),
+    path('goods/brands/simple/', brands.BrandSimpleListAPIView.as_view()),
 ]
 
 # 视图集 viewset 路由
 from rest_framework.routers import DefaultRouter
+
 # 创建路由实例
 router = DefaultRouter()
 # 注册路由
